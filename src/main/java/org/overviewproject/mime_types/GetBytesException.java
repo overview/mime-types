@@ -1,4 +1,4 @@
-package org.overviewproject.commons.mime_types;
+package org.overviewproject.mime_types;
 
 /**
  * Thrown by MimeTypeDetector when it cannot read bytes.

@@ -2,13 +2,41 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.overviewproject.commons</groupId>
+  <groupId>org.overviewproject</groupId>
   <artifactId>mime-types</artifactId>
   <version>0.0.1</version>
   <packaging>jar</packaging>
 
   <name>mime-types</name>
-  <url>http://maven.apache.org</url>
+  <description>Calculates a file's MIME type based on FreeDesktop's shared-mime-info database.</description>
+  <url>https://github.com/overview/mime-types</url>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+  
+  <organization>
+  	<name>Overview</name>
+  	<url>https://www.overviewproject.org</url>
+  </organization>
+
+  <developers>
+    <developer>
+      <name>Adam Hooper</name>
+      <email>adam@adamhooper.com</email>
+      <organization>Overview</organization>
+      <organizationUrl>https://www.overviewproject.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git@github.com:overview/mime-types.git</connection>
+    <developerConnection>scm:git:git@github.com:overview/mime-types.git</developerConnection>
+    <url>git@github.com:overview/mime-types.git</url>
+  </scm>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -60,14 +88,7 @@
       </build>
     </profile>
   </profiles>
-  
-  <organization>
-  	<name>Overview</name>
-  	<url>https://www.overviewproject.org</url>
-  </organization>
-  <scm>
-  	<url>https://github.com/overview/mime-types.git</url>
-  </scm>
+
   <dependencies>
   	<dependency>
   		<groupId>junit</groupId>
@@ -81,7 +102,6 @@
   		<version>1.0.3</version>
   	</dependency>
   </dependencies>
-  <description>Calculates a file's MIME type based on FreeDesktop's shared-mime-info database.</description>
   <build>
     <plugins>
       <plugin>
@@ -99,7 +119,7 @@
         <configuration>
           <archive>
           	<manifest>
-          	  <mainClass>org.overviewproject.commons.mime_types.App</mainClass>
+          	  <mainClass>org.overviewproject.mime_types.App</mainClass>
           	</manifest>
           </archive>
         </configuration>

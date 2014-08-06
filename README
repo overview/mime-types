@@ -8,7 +8,7 @@ library will help.
 
 Just do this:
 
-    import org.overviewproject.commons.mime_types.MimeTypeDetector
+    import org.overviewproject.mime_types.MimeTypeDetector
     
     ...
     

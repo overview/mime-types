@@ -2,3 +2,5 @@ target/
 .project
 .settings/
 .classpath
+*.versionsBackup
+settings.xml

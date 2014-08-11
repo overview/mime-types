@@ -7,7 +7,7 @@
   <version>0.0.1</version>
   <packaging>jar</packaging>
 
-  <name>mime-types</name>
+  <name>${project.groupId}:${project.artifactId}</name>
   <description>Calculates a file's MIME type based on FreeDesktop's shared-mime-info database.</description>
   <url>https://github.com/overview/mime-types</url>
 
@@ -42,6 +42,13 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
   <profiles>
     <profile>
       <id>release</id>
@@ -69,6 +76,20 @@
                 <id>attach-javadocs</id>
                 <goals>
                   <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.5</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
                 </goals>
               </execution>
             </executions>

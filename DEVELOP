@@ -12,7 +12,7 @@ How to generate the "mime.cache" file
 How to release a new version
 ============================
 
-One-time setup: Create a `settings.xml` that looks like this:
+One-time setup: Create a `~/.m2/settings.xml` that looks like this:
 
 ```xml
 <settings>

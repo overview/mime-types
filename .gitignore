@@ -3,4 +3,3 @@ target/
 .settings/
 .classpath
 *.versionsBackup
-settings.xml

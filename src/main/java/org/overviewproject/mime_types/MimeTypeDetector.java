@@ -19,17 +19,16 @@ import org.mozilla.universalchardet.UniversalDetector;
 
 /**
  * Determines the MIME type of a file.
- * 
+ *
  * <p>
  * The Opendesktop shared mime database contains glob rules and magic number
  * lookup information to enable applications to detect the mime types of files.
  * </p>
  * <p>
  * For a complete description of the information contained in this file please
- * see: http://standards.freedesktop.org/shared-mime-info-spec/shared-mime-info-
- * spec-latest.html
+ * see: http://standards.freedesktop.org/shared-mime-info-spec/shared-mime-info-spec-latest.html
  * </p>
- * 
+ *
  * @author Steven McArdle
  * @author Adam Hooper <adam@adamhooper.com>
  */
@@ -39,7 +38,7 @@ public class MimeTypeDetector {
 	
 	/**
 	 * Creates a new MimeTypeDetector.
-	 * 
+	 *
 	 * <p>
 	 * This class is thread-safe. You should create it once and reuse it, as
 	 * it allocates a bit of memory (hundreds of kilobytes) on load.
@@ -65,7 +64,7 @@ public class MimeTypeDetector {
 	
 	/**
 	 * Detects a MIME type from a filename and bytes.
-	 * 
+	 *
 	 * <p>
 	 * This method follows the Shared Mime Info database's
 	 * <a href="http://standards.freedesktop.org/shared-mime-info-spec/shared-mime-info-spec-latest.html#idm140625828606432">Recommended
@@ -73,22 +72,22 @@ public class MimeTypeDetector {
 	 * <tt>text/plain</tt> thoroughly, both by scanning more of the file and
 	 * by supporting many character sets.
 	 * </p>
-	 * 
+	 *
 	 * <p>
 	 * getBytes() is a {@link java.util.concurrent.Callable} because it may or
 	 * may not be needed. A file named <tt>README</tt> will always be detected
-	 * as <tt>text/plain</tt>,  for instance; a file named <tt>foo.doc</tt>
+	 * as <tt>text/plain</tt>, for instance; a file named <tt>foo.doc</tt>
 	 * will need a magic-number check because it may be plain text or it may be
 	 * a Word document.
 	 * </p>
-	 * 
+	 *
 	 * <p>
 	 * If you are creating your own {@code getBytes} method, ensure its return
 	 * value is unpadded. (Use {@link java.util.Array#copyOf()} to truncate
 	 * it.) It needn't be any longer than {@link #getMaxGetBytesLength()}
 	 * bytes.
 	 * </p>
-	 * 
+	 *
 	 * @param filename Filename. To skip filename globbing, pass {@literal ""}
 	 * @param getBytes Callable that returns a {@code byte[]}
 	 * @return a MIME type, such as {@literal "text/plain"}
@@ -130,14 +129,14 @@ public class MimeTypeDetector {
 
 	/**
 	 * Determines the MIME type of a file with a given input stream.
-	 * 
+	 *
 	 * <p>
 	 * The InputStream must exist. It must point to the beginning of the file
 	 * contents. And {@link java.io.InputStream#markSupported()} must return
 	 * {@literal true}. (When in doubt, pass a
 	 * {@link java.io.BufferedInputStream}.)
 	 * </p>
-	 * 
+	 *
 	 * @param filename Name of file. To skip filename globbing, pass {@literal ""}
 	 * @param is InputStream that supports mark and reset.
 	 * @return a MIME type such as {@literal "text/plain"}
@@ -156,11 +155,11 @@ public class MimeTypeDetector {
 
 	/**
 	 * Determines the MIME type of a file.
-	 * 
+	 *
 	 * <p>
 	 * The file must exist and be readable.
 	 * </p>
-	 * 
+	 *
 	 * @param file A file that exists and is readable
 	 * @return a MIME type such as {@literal "text/plain"}
 	 * @throws GetBytesException if reading the file fails.
@@ -186,7 +185,7 @@ public class MimeTypeDetector {
 		// https://issues.apache.org/jira/browse/TIKA-483
 		return bytes.length > 0 && isAsciiText(bytes) || isEncodedText(bytes);
 	}
-	
+
 	private boolean isAsciiText(byte[] bytes) {
 		for (byte b : bytes) {
 			if (b > 0x7f) return false;
@@ -468,13 +467,13 @@ public class MimeTypeDetector {
 	
 	/**
 	 * Returns the number of bytes the magic number sniffers may read.
-	 * 
+	 *
 	 * <p>
 	 * If you are crafting your own getBytes() method, you may use this as a
 	 * hint. getBytes() may return an Array with any number of bytes you like,
 	 * but MimeTypeDetector will not read more than this many.
 	 * </p>
-	 * 
+	 *
 	 * @return The most bytes getBytes() could ever possibly need to return.
 	 */
 	public int getMaxGetBytesLength() {

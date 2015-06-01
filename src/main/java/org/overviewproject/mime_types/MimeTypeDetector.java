@@ -34,7 +34,12 @@ import org.mozilla.universalchardet.UniversalDetector;
  */
 public class MimeTypeDetector {
 	private static String MimeCache = "/mime.cache";
+
+	/** MimeCache file content, as a ByteBuffer. */
 	private ByteBuffer content;
+
+	/** MimeCache file content, as an array of bytes. */
+	private byte[] contentBytes;
 	
 	/**
 	 * Creates a new MimeTypeDetector.
@@ -46,20 +51,21 @@ public class MimeTypeDetector {
 	 */
 	public MimeTypeDetector() {
 		try (InputStream is = getClass().getResourceAsStream(MimeCache)) {
-			content = inputStreamToByteBuffer(is);
+			contentBytes = inputStreamToByteArray(is);
+			content = ByteBuffer.wrap(contentBytes);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
 	
-	private ByteBuffer inputStreamToByteBuffer(InputStream is) throws IOException {
+	private byte[] inputStreamToByteArray(InputStream is) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		byte[] buf = new byte[65536];
 		int nRead;
 		while ((nRead = is.read(buf)) != -1) {
 			baos.write(buf, 0, nRead);
 		}
-		return ByteBuffer.wrap(baos.toByteArray());
+		return baos.toByteArray();
 	}
 	
 	/**
@@ -170,7 +176,7 @@ public class MimeTypeDetector {
 		Callable<byte[]> getBytes = new Callable<byte[]>() {
 			public byte[] call() throws IOException {
 				try (InputStream fis = new FileInputStream(file);
-					 BufferedInputStream bis = new BufferedInputStream(fis)) {
+					BufferedInputStream bis = new BufferedInputStream(fis)) {
 					return inputStreamToFirstBytes(bis);
 				}
 			}
@@ -205,9 +211,9 @@ public class MimeTypeDetector {
 		int extent = getMaxExtents();
 		int cur = 0;
 		byte[] ret = new byte[extent];
-		
+
 		is.mark(extent); // throws IOException if not supported
-		
+
 		while (cur < extent) {
 			int n = is.read(ret, cur, extent - cur);
 			if (n == -1) {
@@ -218,9 +224,9 @@ public class MimeTypeDetector {
 				cur += n;
 			}
 		}
-		
+
 		is.reset();
-		
+
 		return ret;
 	}
 
@@ -242,52 +248,106 @@ public class MimeTypeDetector {
 	}
 
 	private String compareToMagicData(int offset, byte[] data) {
-		int mimeOffset = content.getInt(offset + 4);
-		int numMatches = content.getInt(offset + 8);
-		int matchletOffset = content.getInt(offset + 12);
+		int nMatchlets = content.getInt(offset + 8);
+		int firstMatchletOffset = content.getInt(offset + 12);
 
-		for (int i = 0; i < numMatches; i++) {
-			if (matchletMagicCompare(matchletOffset + (i * 32), data)) {
-				return getMimeType(mimeOffset);
-			}
-		}
+		if (matchletMagicCompareOr(nMatchlets, firstMatchletOffset, data)) {
+            int mimeOffset = content.getInt(offset + 4);
+            return getMimeType(mimeOffset);
+        }
+
 		return null;
 	}
 
+	/**
+	 * Returns whether one of the specified matchlets matches the data.
+	 */
+	private boolean matchletMagicCompareOr(int nMatchlets, int firstMatchletOffset, byte[] data) {
+        for (int i = 0, matchletOffset = firstMatchletOffset; i < nMatchlets; i++, matchletOffset += 32) {
+            if (matchletMagicCompare(matchletOffset, data)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns true if subarrays are equal.
+     */
+    private boolean subArraysEqual(byte[] a, int aStart, byte[] b, int bStart, int len) {
+        for (int i = aStart, j = bStart; len > 0; i++, j++, len--) {
+            if (a[i] != b[j]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns true if subarrays are equal, with the given mask.
+     *
+     * <p>
+     * The mask must have length <tt>len</tt>.
+     * </p>
+     */
+    private boolean subArraysEqualWithMask(byte[] a, int aStart, byte[] b, int bStart, byte[] mask, int maskStart, int len) {
+        for (int i = aStart, j = bStart, k = maskStart; len > 0; i++, j++, k++, len--) {
+            if ((a[i] & mask[k]) != (b[j] & mask[k])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Tests whether one matchlet (but not its children) matches data.
+     */
+    private boolean oneMatchletMagicEquals(int offset, byte[] data) {
+        int rangeStart = content.getInt(offset);      // first byte of data for check to start at
+        int rangeLength = content.getInt(offset + 4); // last byte of data for check to start at
+        int dataLength = content.getInt(offset + 12); // number of bytes in match data/mask
+        int dataOffset = content.getInt(offset + 16); // contentBytes offset to the match data
+        int maskOffset = content.getInt(offset + 20); // contentBytes offset to the mask
+
+        for (int i = 0; i <= rangeLength && i + rangeStart + dataLength <= data.length; i++) {
+            if (maskOffset != 0) {
+                return subArraysEqualWithMask(
+                        contentBytes, dataOffset,
+                        data, rangeStart + i,
+                        contentBytes, maskOffset,
+                        dataLength
+                );
+            } else {
+                return subArraysEqual(
+                        contentBytes, dataOffset,
+                        data, rangeStart + i,
+                        dataLength
+                );
+            }
+        }
+
+        return false;
+    }
+
+	/**
+	 * Returns whether data satisfies the matchlet and its children.
+	 */
 	private boolean matchletMagicCompare(int offset, byte[] data) {
-		int rangeStart = content.getInt(offset);
-		int rangeLength = content.getInt(offset + 4);
-		int dataLength = content.getInt(offset + 12);
-		int dataOffset = content.getInt(offset + 16);
-		int maskOffset = content.getInt(offset + 20);
+	    if (oneMatchletMagicEquals(offset, data)) {
+            int nChildren = content.getInt(offset + 24);
 
-		for (int i = rangeStart; i <= rangeStart + rangeLength; i++) {
-			boolean validMatch = true;
-			if (i + dataLength > data.length) {
-				return false;
-			}
-			if (maskOffset != 0) {
-				for (int j = 0; j < dataLength; j++) {
-					if ((content.get(dataOffset + j) & content.get(maskOffset
-							+ j)) != (data[j + i] & content.get(maskOffset + j))) {
-						validMatch = false;
-						break;
-					}
-				}
-			} else {
-				for (int j = 0; j < dataLength; j++) {
-					if (content.get(dataOffset + j) != data[j + i]) {
-						validMatch = false;
-						break;
-					}
-				}
-			}
-
-			if (validMatch) {
-				return true;
-			}
-		}
-		return false;
+            if (nChildren > 0) {
+                int firstChildOffset = content.getInt(offset + 28);
+                return matchletMagicCompareOr(nChildren, firstChildOffset, data);
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
 	}
 
 	private WeightedMimeType filenameToWmtOrNullByLiteral(String filename) {

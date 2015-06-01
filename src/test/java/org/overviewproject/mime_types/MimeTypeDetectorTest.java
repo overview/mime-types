@@ -47,6 +47,11 @@ public class MimeTypeDetectorTest extends TestCase {
 	public void testMagic() {
 		assertEquals("application/xml", detectMimeType("e[xml]"));
 	}
+
+	public void testMagicIndent() {
+	    // "a\n" will match image/x-pcx if rules are treated as OR instead of AND.
+	    assertEquals("text/plain", detectMimeType("a"));
+    }
 	
 	public void testText() {
 		assertEquals("text/plain", detectMimeType("plaintext"));

@@ -25,6 +25,7 @@ public class MimeTypeDetectorTest extends TestCase {
 		assertEquals("video/x-anim", detectMimeType("abc.anim5"));
 		assertEquals("video/x-anim", detectMimeType("abc.animj"));
 		assertEquals("application/x-compress", detectMimeType("README.Z"));
+		assertEquals("application/vnd.ms-outlook", detectMimeType("t.pst"));
 	}
 	
 	public void testGlobFilename() {

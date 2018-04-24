@@ -1,8 +1,8 @@
 How to generate the "mime.cache" file
 =====================================
 
-1. Clone http://cgit.freedesktop.org/xdg/shared-mime-info/
-2. Compile it
+1. `curl -o - --location http://freedesktop.org/~hadess/shared-mime-info-1.9.tar.xz | tar Jxf -`
+1. `cd ./shared-mime-info && ./configure && make`
 3. Run this
 
     mkdir d/packages -p

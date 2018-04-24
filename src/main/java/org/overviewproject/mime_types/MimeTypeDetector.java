@@ -7,12 +7,21 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.CompletionHandler;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier; // Callable throws checked exceptions, which are incompatible with CompletionStage
 import java.util.regex.Pattern;
 
 import org.mozilla.universalchardet.UniversalDetector;
@@ -67,9 +76,84 @@ public class MimeTypeDetector {
 		}
 		return baos.toByteArray();
 	}
-	
+
+	/**
+	 * Waits for a CompletionStage, for non-async methods.
+	 */
+	private static String unwrapFutureString(CompletionStage<String> future) throws GetBytesException {
+        try {
+            return future.toCompletableFuture().get();
+        } catch (Throwable e) {
+            if (e.getCause() instanceof GetBytesException) {
+                throw (GetBytesException) e.getCause();
+            }
+            throw new RuntimeException(e.getCause());
+        }
+    }
+
 	/**
 	 * Detects a MIME type from a filename and bytes.
+	 *
+	 * <p>
+	 * This method follows the Shared Mime Info database's
+	 * <a href="http://standards.freedesktop.org/shared-mime-info-spec/shared-mime-info-spec-latest.html#idm140625828606432">Recommended
+	 * Checking Order</a>. The only difference: it tests for
+	 * <tt>text/plain</tt> thoroughly, both by scanning more of the file and
+	 * by supporting many character sets.
+	 * </p>
+	 *
+	 * <p>
+	 * getBytes() is a {@link java.util.concurrent.Callable} because it may or
+	 * may not be needed. A file named <tt>README</tt> will always be detected
+	 * as <tt>text/plain</tt>, for instance; a file named <tt>foo.doc</tt>
+	 * will need a magic-number check because it may be plain text or it may be
+	 * a Word document.
+	 * </p>
+	 *
+	 * <p>
+	 * If you are creating your own {@code getBytesAsync} method, ensure its return
+	 * value is unpadded. (Use {@link java.util.Array#copyOf()} to truncate
+	 * it.) It needn't be any longer than {@link #getMaxGetBytesLength()}
+	 * bytes.
+	 * </p>
+	 *
+	 * @param filename Filename. To skip filename globbing, pass {@literal ""}
+	 * @param getBytesAsync Supplier that eventually returns a {@code byte[]}
+	 * @throws GetBytesException if {@code getBytes.call()} throws an Exception
+	 */
+	public CompletionStage<String> detectMimeTypeAsync(String filename, Supplier<CompletionStage<byte[]>> getBytesAsync) {
+		Set<WeightedMimeType> weightedMimeTypes = filenameToWmts(filename);
+		Set<String> globMimeTypes = findBestMimeTypes(weightedMimeTypes);
+		
+		if (globMimeTypes.size() == 1) {
+			return CompletableFuture.completedFuture(globMimeTypes.iterator().next());
+		}
+
+        return getBytesAsync.get()
+            .thenApply(bytes -> {
+                for (String magicMimeType : bytesToMimeTypes(bytes)) {
+                    if (globMimeTypes.isEmpty()) {
+                        return magicMimeType;
+                    } else {
+                        for (String globMimeType : globMimeTypes) {
+                            if (isMimeTypeEqualOrSubclass(globMimeType, magicMimeType)) {
+                                return globMimeType;
+                            }
+                        }
+                    }
+                }
+		
+                if (isText(bytes)) {
+                    return "text/plain";
+                }
+                
+                return "application/octet-stream";		
+            })
+            .exceptionally(ex -> { throw new CompletionException(new GetBytesException(ex)); });
+	}
+
+	/**
+	 * Synchronously detects a MIME type from a filename and bytes.
 	 *
 	 * <p>
 	 * This method follows the Shared Mime Info database's
@@ -96,42 +180,18 @@ public class MimeTypeDetector {
 	 *
 	 * @param filename Filename. To skip filename globbing, pass {@literal ""}
 	 * @param getBytes Callable that returns a {@code byte[]}
-	 * @return a MIME type, such as {@literal "text/plain"}
 	 * @throws GetBytesException if {@code getBytes.call()} throws an Exception
 	 */
 	public String detectMimeType(String filename, Callable<byte[]> getBytes) throws GetBytesException {
-		Set<WeightedMimeType> weightedMimeTypes = filenameToWmts(filename);
-		Set<String> globMimeTypes = findBestMimeTypes(weightedMimeTypes);
-		
-		if (globMimeTypes.size() == 1) {
-			return globMimeTypes.iterator().next();
-		}
-		
-		byte[] bytes;
-		try {
-			bytes = getBytes.call();
-		} catch (Exception e) {
-			throw new GetBytesException(e);
-		}
-		
-		for (String magicMimeType : bytesToMimeTypes(bytes)) {
-			if (globMimeTypes.isEmpty()) {
-				return magicMimeType;
-			} else {
-				for (String globMimeType : globMimeTypes) {
-					if (isMimeTypeEqualOrSubclass(globMimeType, magicMimeType)) {
-						return globMimeType;
-					}
-				}
-			}
-		}
-		
-		if (isText(bytes)) {
-			return "text/plain";
-		}
-		
-		return "application/octet-stream";		
-	}
+	    Supplier<CompletionStage<byte[]>> supplier = () -> {
+	        try {
+	            return CompletableFuture.completedFuture(getBytes.call());
+            } catch (Exception ex) {
+                throw new CompletionException(ex);
+            }
+        };
+        return unwrapFutureString(detectMimeTypeAsync(filename, supplier));
+    }
 
 	/**
 	 * Determines the MIME type of a file with a given input stream.
@@ -172,19 +232,70 @@ public class MimeTypeDetector {
 	 * @see #detectMimeType(String, Callable)
 	 */
 	public String detectMimeType(final File file) throws GetBytesException {
-		String filename = file.getName();
-		Callable<byte[]> getBytes = new Callable<byte[]>() {
-			public byte[] call() throws IOException {
-				try (InputStream fis = new FileInputStream(file);
-					BufferedInputStream bis = new BufferedInputStream(fis)) {
-					return inputStreamToFirstBytes(bis);
-				}
-			}
-		};
-		
-		return detectMimeType(filename, getBytes);
+	    return detectMimeType(file.toPath());
 	}
-	
+
+	/**
+	 * Determines the MIME type of a file.
+	 *
+	 * <p>
+	 * The file must exist and be readable.
+	 * </p>
+	 *
+	 * @param path A file that exists and is readable
+	 * @return a MIME type such as {@literal "text/plain"}
+	 * @throws GetBytesException if reading the file fails.
+	 * @see #detectMimeType(String, Callable)
+	 */
+	public String detectMimeType(final Path path) throws GetBytesException {
+        return unwrapFutureString(detectMimeTypeAsync(path));
+    }
+
+	/**
+	 * Determines the MIME type of a file.
+	 *
+	 * <p>
+	 * The file must exist and be readable.
+	 * </p>
+	 *
+	 * @param path A file that exists and is readable
+	 * @return a MIME type such as {@literal "text/plain"}
+	 * @throws GetBytesException if reading the file fails.
+	 * @see #detectMimeType(String, Callable)
+	 */
+	public CompletionStage<String> detectMimeTypeAsync(final Path path) {
+		String filename = path.getFileName().toString();
+
+		Supplier<CompletionStage<byte[]>> supplier = () -> {
+		    final CompletableFuture<byte[]> futureBytes = new CompletableFuture<byte[]>();
+
+            AsynchronousFileChannel channel;
+            try {
+                channel = AsynchronousFileChannel.open(path, StandardOpenOption.READ);
+            } catch (IOException e) {
+                futureBytes.completeExceptionally(new GetBytesException(e));
+                return futureBytes;
+            }
+
+            final ByteBuffer buf = ByteBuffer.allocate(getMaxGetBytesLength());
+            channel.read(buf, 0, futureBytes, new CompletionHandler<Integer, CompletableFuture<byte[]>>() {
+                @Override public void completed(Integer nBytes, CompletableFuture<byte[]> f) {
+                    byte[] bytes = new byte[nBytes];
+                    buf.rewind();
+                    buf.get(bytes, 0, nBytes);
+                    f.complete(bytes);
+                }
+
+                @Override public void failed(Throwable exc, CompletableFuture<byte[]> f) {
+                    f.completeExceptionally(new GetBytesException(exc));
+                }
+            });
+            return futureBytes;
+        };
+		
+		return detectMimeTypeAsync(filename, supplier);
+	}
+
 	private boolean isText(byte[] bytes) {
 		// UniversalDetector seems unable to detect ASCII. Weird, huh?
 		// 0 bytes is application/octet-stream, like Tika

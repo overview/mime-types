@@ -6,6 +6,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
 import junit.framework.TestCase;
 
@@ -79,6 +83,16 @@ public class MimeTypeDetectorTest extends TestCase {
 		}
 		assertEquals("text/plain", detector.detectMimeType(f));
 	}
+
+	public void testPath() throws IOException, GetBytesException {
+		File f = File.createTempFile("mime-type-test", ".weird");
+		f.deleteOnExit();
+		
+		try (FileWriter fw = new FileWriter(f)) {
+			fw.append("foo bar baz");
+		}
+		assertEquals("text/plain", detector.detectMimeType(f.toPath()));
+    }
 	
 	public void testCallback() throws GetBytesException {
 		Callable<byte[]> getBytes = new Callable<byte[]>() {
@@ -89,4 +103,29 @@ public class MimeTypeDetectorTest extends TestCase {
 		
 		assertEquals("text/plain", detector.detectMimeType("mime-type-test.weird", getBytes));
 	}
+
+	public void testAsync() throws IOException, InterruptedException, ExecutionException {
+	    byte[] bytes = "foo bar baz".getBytes("utf-8");
+
+        Supplier<CompletionStage<byte[]>> getBytes = () -> {
+            return CompletableFuture.completedFuture(bytes);
+        };
+
+        assertEquals("text/plain", detector.detectMimeTypeAsync("mime-type-test.weird", getBytes).toCompletableFuture().get());
+    }
+
+	public void testAsyncGetBytesException() throws IOException, InterruptedException, ExecutionException {
+        Supplier<CompletionStage<byte[]>> getBytes = () -> {
+            CompletableFuture<byte[]> future = new CompletableFuture<byte[]>();
+            future.completeExceptionally(new GetBytesException(new IOException("oops")));
+            return future;
+        };
+
+        try {
+            detector.detectMimeTypeAsync("mime-type-test.weird", getBytes).toCompletableFuture().get();
+            fail("That should have thrown an exception");
+        } catch (ExecutionException ex) {
+            assertEquals(GetBytesException.class, ex.getCause().getClass());
+        }
+    }
 }

@@ -39,7 +39,7 @@ import org.mozilla.universalchardet.UniversalDetector;
  * </p>
  *
  * @author Steven McArdle
- * @author Adam Hooper <adam@adamhooper.com>
+ * @author Adam Hooper &lt;adam@adamhooper.com&gt;
  */
 public class MimeTypeDetector {
 	private static String MimeCache = "/mime.cache";
@@ -112,14 +112,21 @@ public class MimeTypeDetector {
 	 *
 	 * <p>
 	 * If you are creating your own {@code getBytesAsync} method, ensure its return
-	 * value is unpadded. (Use {@link java.util.Array#copyOf()} to truncate
+	 * value is unpadded. (Use {@link java.util.Arrays#copyOf(byte[],int)} to truncate
 	 * it.) It needn't be any longer than {@link #getMaxGetBytesLength()}
 	 * bytes.
 	 * </p>
 	 *
+	 * <p>
+	 * The CompletionStage may return a {@link ExecutionException} which is caused
+	 * by a {@link GetBytesException}. (That, in turn, will wrap a
+	 * {@link IOException} or other exception that prevented getBytesAsync() from
+	 * working.
+	 * </p>
+     *
 	 * @param filename Filename. To skip filename globbing, pass {@literal ""}
 	 * @param getBytesAsync Supplier that eventually returns a {@code byte[]}
-	 * @throws GetBytesException if {@code getBytes.call()} throws an Exception
+	 * @return Eventual MIME type String, falling back to <tt>"application/octet-stream</tt>"
 	 */
 	public CompletionStage<String> detectMimeTypeAsync(String filename, Supplier<CompletionStage<byte[]>> getBytesAsync) {
 		Set<WeightedMimeType> weightedMimeTypes = filenameToWmts(filename);
@@ -173,13 +180,14 @@ public class MimeTypeDetector {
 	 *
 	 * <p>
 	 * If you are creating your own {@code getBytes} method, ensure its return
-	 * value is unpadded. (Use {@link java.util.Array#copyOf()} to truncate
+	 * value is unpadded. (Use {@link java.util.Arrays#copyOf(byte[],int)} to truncate
 	 * it.) It needn't be any longer than {@link #getMaxGetBytesLength()}
 	 * bytes.
 	 * </p>
 	 *
 	 * @param filename Filename. To skip filename globbing, pass {@literal ""}
 	 * @param getBytes Callable that returns a {@code byte[]}
+	 * @return a MIME type such as {@literal "text/plain"}
 	 * @throws GetBytesException if {@code getBytes.call()} throws an Exception
 	 */
 	public String detectMimeType(String filename, Callable<byte[]> getBytes) throws GetBytesException {
@@ -258,9 +266,15 @@ public class MimeTypeDetector {
 	 * The file must exist and be readable.
 	 * </p>
 	 *
+	 * <p>
+	 * The CompletionStage may return a {@link ExecutionException} which is caused
+	 * by a {@link GetBytesException}. (That, in turn, will wrap a
+	 * {@link IOException} or other exception that prevented getBytesAsync() from
+	 * working.
+	 * </p>
+	 *
 	 * @param path A file that exists and is readable
 	 * @return a MIME type such as {@literal "text/plain"}
-	 * @throws GetBytesException if reading the file fails.
 	 * @see #detectMimeType(String, Callable)
 	 */
 	public CompletionStage<String> detectMimeTypeAsync(final Path path) {

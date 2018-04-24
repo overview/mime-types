@@ -1,14 +1,3 @@
-How to generate the "mime.cache" file
-=====================================
-
-1. `curl -o - --location http://freedesktop.org/~hadess/shared-mime-info-1.9.tar.xz | tar Jxf -`
-1. `cd ./shared-mime-info && ./configure && make`
-3. Run this
-
-    mkdir d/packages -p
-    cp freedesktop.org.xml d/packages
-    ./update-mime-database d # and read d/mime.cache
-
 How to release a new version
 ============================
 

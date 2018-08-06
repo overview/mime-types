@@ -1,9 +1,7 @@
 package org.overviewproject.mime_types;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -294,6 +292,8 @@ public class MimeTypeDetector {
             final ByteBuffer buf = ByteBuffer.allocate(getMaxGetBytesLength());
             channel.read(buf, 0, futureBytes, new CompletionHandler<Integer, CompletableFuture<byte[]>>() {
                 @Override public void completed(Integer nBytes, CompletableFuture<byte[]> f) {
+                    if (nBytes == -1) nBytes = 0; // handle empty file
+
                     byte[] bytes = new byte[nBytes];
                     buf.rewind();
                     buf.get(bytes, 0, nBytes);

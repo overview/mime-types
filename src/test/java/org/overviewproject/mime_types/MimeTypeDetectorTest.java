@@ -15,12 +15,12 @@ import junit.framework.TestCase;
 
 public class MimeTypeDetectorTest extends TestCase {
 	private MimeTypeDetector detector = new MimeTypeDetector();
-	
+
 	public void testGlobLiteral() {
 		assertEquals("text/x-makefile", detectMimeType("makefile"));
 		assertEquals("text/x-makefile", detectMimeType("Makefile"));
 	}
-	
+
 	public void testGlobExtension() {
 		assertEquals("text/plain", detectMimeType("abc.txt"));
 		assertEquals("image/x-win-bitmap", detectMimeType("x.cur"));
@@ -31,7 +31,7 @@ public class MimeTypeDetectorTest extends TestCase {
 		assertEquals("application/x-compress", detectMimeType("README.Z"));
 		assertEquals("application/vnd.ms-outlook", detectMimeType("t.pst"));
 	}
-	
+
 	public void testGlobFilename() {
 		assertEquals("text/x-readme", detectMimeType("README"));
 		assertEquals("text/x-readme", detectMimeType("READMEFILE"));
@@ -39,16 +39,16 @@ public class MimeTypeDetectorTest extends TestCase {
 		assertEquals("text/x-log", detectMimeType("README.log"));
 		assertEquals("text/x-readme", detectMimeType("README.file"));
 	}
-	
+
 	public void testOctetStream() {
 		assertEquals("application/octet-stream", detectMimeType("empty"));
 		assertEquals("application/octet-stream", detectMimeType("octet-stream"));
 	}
-	
+
 	public void testMultipleExtensions() {
 		assertEquals("application/x-java-archive", detectMimeType("e.1.3.jar"));
 	}
-	
+
 	public void testMagic() {
 		assertEquals("application/xml", detectMimeType("e[xml]"));
 	}
@@ -57,13 +57,13 @@ public class MimeTypeDetectorTest extends TestCase {
 	    // "a\n" will match image/x-pcx if rules are treated as OR instead of AND.
 	    assertEquals("text/plain", detectMimeType("a"));
     }
-	
+
 	public void testText() {
 		assertEquals("text/plain", detectMimeType("plaintext"));
 		assertEquals("text/plain", detectMimeType("textfiles/utf-8"));
 		assertEquals("text/plain", detectMimeType("textfiles/windows-1255"));
 	}
-	
+
 	private String detectMimeType(String resourceName) {
 		try (InputStream is = getClass().getResourceAsStream("/test/" + resourceName)) {
 			return detector.detectMimeType(resourceName, is);
@@ -73,11 +73,21 @@ public class MimeTypeDetectorTest extends TestCase {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
+	public void testEmptyFile() throws IOException, GetBytesException {
+		File f = File.createTempFile("mime-type-test", ".weird");
+		f.deleteOnExit();
+
+		try (FileWriter fw = new FileWriter(f)) {
+            // empty file
+		}
+		assertEquals("application/octet-stream", detector.detectMimeType(f));
+    }
+
 	public void testFile() throws IOException, GetBytesException {
 		File f = File.createTempFile("mime-type-test", ".weird");
 		f.deleteOnExit();
-		
+
 		try (FileWriter fw = new FileWriter(f)) {
 			fw.append("foo bar baz");
 		}
@@ -87,20 +97,20 @@ public class MimeTypeDetectorTest extends TestCase {
 	public void testPath() throws IOException, GetBytesException {
 		File f = File.createTempFile("mime-type-test", ".weird");
 		f.deleteOnExit();
-		
+
 		try (FileWriter fw = new FileWriter(f)) {
 			fw.append("foo bar baz");
 		}
 		assertEquals("text/plain", detector.detectMimeType(f.toPath()));
     }
-	
+
 	public void testCallback() throws GetBytesException {
 		Callable<byte[]> getBytes = new Callable<byte[]>() {
 			public byte[] call() throws UnsupportedEncodingException {
 				return "foo bar baz".getBytes("utf-8");
 			}
 		};
-		
+
 		assertEquals("text/plain", detector.detectMimeType("mime-type-test.weird", getBytes));
 	}
 

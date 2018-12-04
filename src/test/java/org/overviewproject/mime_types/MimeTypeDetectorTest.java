@@ -1,17 +1,13 @@
 package org.overviewproject.mime_types;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import junit.framework.TestCase;
+
+import java.io.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
-
-import junit.framework.TestCase;
 
 public class MimeTypeDetectorTest extends TestCase {
 	private MimeTypeDetector detector = new MimeTypeDetector();
@@ -62,6 +58,11 @@ public class MimeTypeDetectorTest extends TestCase {
 		assertEquals("text/plain", detectMimeType("plaintext"));
 		assertEquals("text/plain", detectMimeType("textfiles/utf-8"));
 		assertEquals("text/plain", detectMimeType("textfiles/windows-1255"));
+	}
+
+	public void testVideoHeaders() {
+		assertEquals("application/x-matroska", detectMimeType("mkv-video-header"));
+		assertEquals("application/ogg", detectMimeType("ogv-video-header"));
 	}
 
 	private String detectMimeType(String resourceName) {

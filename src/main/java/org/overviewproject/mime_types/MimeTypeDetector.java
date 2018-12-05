@@ -357,7 +357,7 @@ public class MimeTypeDetector {
 	}
 
 	private Iterable<String> bytesToMimeTypes(byte[] data) {
-		HashSet<String> mimeTypes = new LinkedHashSet<>();
+		Set<String> mimeTypes = new LinkedHashSet<>();
 
 		int listOffset = getMagicListOffset();
 		int numEntries = content.getInt(listOffset);

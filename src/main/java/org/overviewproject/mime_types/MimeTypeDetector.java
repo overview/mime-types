@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -356,7 +357,7 @@ public class MimeTypeDetector {
 	}
 
 	private Iterable<String> bytesToMimeTypes(byte[] data) {
-		Set<String> mimeTypes = new HashSet<String>();
+		Set<String> mimeTypes = new LinkedHashSet<String>();
 
 		int listOffset = getMagicListOffset();
 		int numEntries = content.getInt(listOffset);
@@ -437,16 +438,18 @@ public class MimeTypeDetector {
         int dataOffset = content.getInt(offset + 16); // contentBytes offset to the match data
         int maskOffset = content.getInt(offset + 20); // contentBytes offset to the mask
 
-        for (int i = 0; i <= rangeLength && i + rangeStart + dataLength <= data.length; i++) {
+        boolean found = false;
+
+        for (int i = 0; !found && (i <= rangeLength) && (i + rangeStart + dataLength <= data.length); i++) {
             if (maskOffset != 0) {
-                return subArraysEqualWithMask(
+                found = subArraysEqualWithMask(
                         contentBytes, dataOffset,
                         data, rangeStart + i,
                         contentBytes, maskOffset,
                         dataLength
                 );
             } else {
-                return subArraysEqual(
+                found = subArraysEqual(
                         contentBytes, dataOffset,
                         data, rangeStart + i,
                         dataLength
@@ -454,7 +457,7 @@ public class MimeTypeDetector {
             }
         }
 
-        return false;
+        return found;
     }
 
 	/**

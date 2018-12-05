@@ -64,6 +64,18 @@ public class MimeTypeDetectorTest extends TestCase {
 		assertEquals("text/plain", detectMimeType("textfiles/windows-1255"));
 	}
 
+	public void testMatchletSearchIsThorough() {
+		// returns application/octet-stream if the entire matchlet range is not searched
+		assertEquals("application/x-matroska", detectMimeType("mkv-video-header"));
+	}
+
+	public void testRespectsMagicFileOrdering() {
+		// MIME candidates are found in this order for this file: "application/ogg", "audio/ogg", "video/ogg" (note, the superclass comes first)
+		// however, if a HashSet is used internally, the iterable order will be something like: "audio/ogg", "application/ogg", "video/ogg"
+		// and "audio/ogg" is returned for video as well as audio (not good)
+		assertEquals("application/ogg", detectMimeType("ogv-video-header"));
+	}
+
 	private String detectMimeType(String resourceName) {
 		try (InputStream is = getClass().getResourceAsStream("/test/" + resourceName)) {
 			return detector.detectMimeType(resourceName, is);

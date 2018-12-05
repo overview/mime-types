@@ -1,7 +1,5 @@
 package org.overviewproject.mime_types;
 
-import org.mozilla.universalchardet.UniversalDetector;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -11,10 +9,20 @@ import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier; // Callable throws checked exceptions, which are incompatible with CompletionStage
 import java.util.regex.Pattern;
+
+import org.mozilla.universalchardet.UniversalDetector;
 
 /**
  * Determines the MIME type of a file.
@@ -128,17 +136,8 @@ public class MimeTypeDetector {
 
         return getBytesAsync.get()
             .thenApply(bytes -> {
-                Iterable<String> mimeTypes = bytesToMimeTypes(bytes);
-
-                for (String magicMimeType : mimeTypes) {
+                for (String magicMimeType : bytesToMimeTypes(bytes)) {
                     if (globMimeTypes.isEmpty()) {
-                        // return MIME type of the superclass
-                        for (String superclassCandidate : mimeTypes) {
-                            if (!magicMimeType.equals(superclassCandidate) && isMimeTypeEqualOrSubclass(magicMimeType, superclassCandidate)) {
-                                return superclassCandidate;
-                            }
-                        }
-
                         return magicMimeType;
                     } else {
                         for (String globMimeType : globMimeTypes) {
@@ -357,7 +356,7 @@ public class MimeTypeDetector {
 	}
 
 	private Iterable<String> bytesToMimeTypes(byte[] data) {
-		Set<String> mimeTypes = new HashSet<String>();
+		HashSet<String> mimeTypes = new LinkedHashSet<>();
 
 		int listOffset = getMagicListOffset();
 		int numEntries = content.getInt(listOffset);

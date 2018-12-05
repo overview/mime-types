@@ -1,13 +1,17 @@
 package org.overviewproject.mime_types;
 
-import junit.framework.TestCase;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
+
+import junit.framework.TestCase;
 
 public class MimeTypeDetectorTest extends TestCase {
 	private MimeTypeDetector detector = new MimeTypeDetector();

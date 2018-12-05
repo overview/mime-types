@@ -69,10 +69,10 @@ public class MimeTypeDetectorTest extends TestCase {
 		assertEquals("application/x-matroska", detectMimeType("mkv-video-header"));
 	}
 
-	public void testReturnFirstCandidateInOrder() {
+	public void testRespectsMagicFileOrdering() {
 		// MIME candidates are found in this order for this file: "application/ogg", "audio/ogg", "video/ogg" (note, the superclass comes first)
 		// however, if a HashSet is used internally, the iterable order will be something like: "audio/ogg", "application/ogg", "video/ogg"
-		// and "audio/ogg" is returned for video as well as audio, it's better to return the generic superclass
+		// and "audio/ogg" is returned for video as well as audio (not good)
 		assertEquals("application/ogg", detectMimeType("ogv-video-header"));
 	}
 

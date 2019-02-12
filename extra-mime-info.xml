@@ -70,4 +70,9 @@
       <match value="\x21\x42\x44\x4e" type="string" offset="0"/>
     </magic>
   </mime-type>
+  <mime-type type="video/mp4">
+    <magic priority="50">
+      <match value="ftypmp41" type="string" offset="4"/>
+    </magic>
+  </mime-type>
 </mime-info>

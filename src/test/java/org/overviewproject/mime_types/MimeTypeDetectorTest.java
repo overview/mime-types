@@ -1,17 +1,13 @@
 package org.overviewproject.mime_types;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import junit.framework.TestCase;
+
+import java.io.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
-
-import junit.framework.TestCase;
 
 public class MimeTypeDetectorTest extends TestCase {
 	private MimeTypeDetector detector = new MimeTypeDetector();
@@ -74,6 +70,16 @@ public class MimeTypeDetectorTest extends TestCase {
 		// however, if a HashSet is used internally, the iterable order will be something like: "audio/ogg", "application/ogg", "video/ogg"
 		// and "audio/ogg" is returned for video as well as audio (not good)
 		assertEquals("application/ogg", detectMimeType("ogv-video-header"));
+	}
+
+	public void testMPEG4v1() {
+		// ISO Media, MP4 v1 [ISO 14496-1:ch13] - missing in shared-mime-info
+		assertEquals("video/mp4", detectMimeType("mp4v1-video-header"));
+	}
+
+	public void testMPEG4v2() {
+		//	ISO Media, MP4 v2 [ISO 14496-14] - included in shared-mime-info
+		assertEquals("video/mp4", detectMimeType("mp4v2-video-header"));
 	}
 
 	private String detectMimeType(String resourceName) {

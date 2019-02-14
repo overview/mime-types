@@ -10,20 +10,27 @@ Just do this:
 
     import org.overviewproject.mime_types.MimeTypeDetector
     
-    ...
+    // ...
     
-    String mimeType = MimeTypeDetector.detect("foo.txt"); // "text/plain"
+    File file = new File("foo.txt")
+    String mimeType = MimeTypeDetector.detectMimeType(file); // "text/plain"
+
+    // ... or ...
+
+    InputStream stream = new ByteArrayInputStream("words".getBytes("utf-8"))
+    String mimeType = MimeTypeDetector.detectMimeType("filename", stream); // "text/plain"
+
+No library can figure out MIME types perfectly. But there's a standard, called
+shared-mime-info. This library follows it to the letter.
 
 You need two things to detect a file's type:
 
 1. The file's name
 2. The first few bytes of the file's content
 
-You can get away with using just one or the other, but the results will be
-iffy. So give both.
-
-No library can figure out MIME types perfectly. But there's a standard, called
-shared-mime-info, and this library follows it to the letter.
+The bytes aren't always needed; for speed, you can pass a callback instead of
+the actual bytes, and this library will only invoke the callback when it's
+absolutely necessary. There's an async version, too.
 
 CREDITS
 

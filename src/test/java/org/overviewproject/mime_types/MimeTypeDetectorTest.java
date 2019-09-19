@@ -54,9 +54,9 @@ public class MimeTypeDetectorTest extends TestCase {
 	}
 
 	public void testMagicIndent() {
-	    // "a\n" will match image/x-pcx if rules are treated as OR instead of AND.
-	    assertEquals("text/plain", detectMimeType("a"));
-    }
+		// "a\n" will match image/x-pcx if rules are treated as OR instead of AND.
+		assertEquals("text/plain", detectMimeType("a"));
+	}
 
 	public void testText() {
 		assertEquals("text/plain", detectMimeType("plaintext"));
@@ -76,6 +76,16 @@ public class MimeTypeDetectorTest extends TestCase {
 		assertEquals("application/ogg", detectMimeType("ogv-video-header"));
 	}
 
+	public void testMPEG4v1() {
+		// ISO Media, MP4 v1 [ISO 14496-1:ch13] - new in shared-mime-info-1.13.1
+		assertEquals("video/mp4", detectMimeType("mp4v1-video-header"));
+	}
+
+	public void testMPEG4v2() {
+		// ISO Media, MP4 v2 [ISO 14496-14] - included in shared-mime-info
+		assertEquals("video/mp4", detectMimeType("mp4v2-video-header"));
+	}
+
 	private String detectMimeType(String resourceName) {
 		try (InputStream is = getClass().getResourceAsStream("/test/" + resourceName)) {
 			return detector.detectMimeType(resourceName, is);
@@ -91,10 +101,10 @@ public class MimeTypeDetectorTest extends TestCase {
 		f.deleteOnExit();
 
 		try (FileWriter fw = new FileWriter(f)) {
-            // empty file
+			// empty file
 		}
 		assertEquals("application/octet-stream", detector.detectMimeType(f));
-    }
+	}
 
 	public void testFile() throws IOException, GetBytesException {
 		File f = File.createTempFile("mime-type-test", ".weird");
@@ -114,7 +124,7 @@ public class MimeTypeDetectorTest extends TestCase {
 			fw.append("foo bar baz");
 		}
 		assertEquals("text/plain", detector.detectMimeType(f.toPath()));
-    }
+	}
 
 	public void testCallback() throws GetBytesException {
 		Callable<byte[]> getBytes = new Callable<byte[]>() {
@@ -127,27 +137,27 @@ public class MimeTypeDetectorTest extends TestCase {
 	}
 
 	public void testAsync() throws IOException, InterruptedException, ExecutionException {
-	    byte[] bytes = "foo bar baz".getBytes("utf-8");
+		byte[] bytes = "foo bar baz".getBytes("utf-8");
 
-        Supplier<CompletionStage<byte[]>> getBytes = () -> {
-            return CompletableFuture.completedFuture(bytes);
-        };
+		Supplier<CompletionStage<byte[]>> getBytes = () -> {
+			return CompletableFuture.completedFuture(bytes);
+		};
 
-        assertEquals("text/plain", detector.detectMimeTypeAsync("mime-type-test.weird", getBytes).toCompletableFuture().get());
-    }
+		assertEquals("text/plain", detector.detectMimeTypeAsync("mime-type-test.weird", getBytes).toCompletableFuture().get());
+	}
 
 	public void testAsyncGetBytesException() throws IOException, InterruptedException, ExecutionException {
-        Supplier<CompletionStage<byte[]>> getBytes = () -> {
-            CompletableFuture<byte[]> future = new CompletableFuture<byte[]>();
-            future.completeExceptionally(new GetBytesException(new IOException("oops")));
-            return future;
-        };
+		Supplier<CompletionStage<byte[]>> getBytes = () -> {
+			CompletableFuture<byte[]> future = new CompletableFuture<byte[]>();
+			future.completeExceptionally(new GetBytesException(new IOException("oops")));
+			return future;
+		};
 
-        try {
-            detector.detectMimeTypeAsync("mime-type-test.weird", getBytes).toCompletableFuture().get();
-            fail("That should have thrown an exception");
-        } catch (ExecutionException ex) {
-            assertEquals(GetBytesException.class, ex.getCause().getClass());
-        }
-    }
+		try {
+			detector.detectMimeTypeAsync("mime-type-test.weird", getBytes).toCompletableFuture().get();
+			fail("That should have thrown an exception");
+		} catch (ExecutionException ex) {
+			assertEquals(GetBytesException.class, ex.getCause().getClass());
+		}
+	}
 }

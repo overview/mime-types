@@ -4,7 +4,7 @@
 
   <groupId>org.overviewproject</groupId>
   <artifactId>mime-types</artifactId>
-  <version>0.1.3</version>
+  <version>1.0.0</version>
   <packaging>jar</packaging>
 
   <name>${project.groupId}:${project.artifactId}</name>
@@ -19,8 +19,8 @@
   </licenses>
   
   <organization>
-  	<name>Overview</name>
-  	<url>https://www.overviewproject.org</url>
+    <name>Overview</name>
+    <url>https://www.overviewproject.org</url>
   </organization>
 
   <developers>
@@ -57,7 +57,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
-            <version>2.2.1</version>
+            <version>3.2.0</version>
             <executions>
               <execution>
                 <id>attach-sources</id>
@@ -70,7 +70,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>2.9.1</version>
+            <version>3.2.0</version>
             <executions>
               <execution>
                 <id>attach-javadocs</id>
@@ -97,7 +97,7 @@
           <plugin>
             <groupId>org.sonatype.plugins</groupId>
             <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>1.6.2</version>
+            <version>1.6.8</version>
             <extensions>true</extensions>
             <configuration>
               <serverId>ossrh</serverId>
@@ -111,42 +111,42 @@
   </profiles>
 
   <dependencies>
-  	<dependency>
-  		<groupId>org.junit.jupiter</groupId>
-  		<artifactId>junit-jupiter-api</artifactId>
-  		<version>5.1.1</version>
-  		<scope>test</scope>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.junit.jupiter</groupId>
-  		<artifactId>junit-jupiter-engine</artifactId>
-  		<version>5.1.1</version>
-  		<scope>test</scope>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.junit.platform</groupId>
-  		<artifactId>junit-platform-launcher</artifactId>
-  		<version>1.1.1</version>
-  		<scope>test</scope>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.junit.platform</groupId>
-  		<artifactId>junit-platform-runner</artifactId>
-  		<version>1.1.1</version>
-  		<scope>test</scope>
-  	</dependency>
-  	<dependency>
-  		<groupId>com.github.albfernandez</groupId>
-  		<artifactId>juniversalchardet</artifactId>
-  		<version>2.1.0</version>
-  	</dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>5.7.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>5.7.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId>
+      <version>1.7.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-runner</artifactId>
+      <version>1.7.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.albfernandez</groupId>
+      <artifactId>juniversalchardet</artifactId>
+      <version>2.4.0</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.7.0</version>
+        <version>3.8.1</version>
         <configuration>
            <source>1.8</source>
            <target>1.8</target>
@@ -154,12 +154,12 @@
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.2.0</version>
         <configuration>
           <archive>
-          	<manifest>
-          	  <mainClass>org.overviewproject.mime_types.App</mainClass>
-          	</manifest>
+            <manifest>
+              <mainClass>org.overviewproject.mime_types.App</mainClass>
+            </manifest>
           </archive>
         </configuration>
       </plugin>
@@ -177,6 +177,6 @@
     </plugins>
   </build>
   <issueManagement>
-  	<url>https://github.com/overview/mime-types/issues</url>
+    <url>https://github.com/overview/mime-types/issues</url>
   </issueManagement>
 </project>

@@ -96,17 +96,17 @@ public class MimeTypeDetector {
 	 * <p>
 	 * This method follows the Shared Mime Info database's
 	 * <a href="http://standards.freedesktop.org/shared-mime-info-spec/shared-mime-info-spec-latest.html#idm140625828606432">Recommended
-	 * Checking Order</a>. The only difference: it tests for
-	 * <tt>text/plain</tt> thoroughly, both by scanning more of the file and
-	 * by supporting many character sets.
+	 * Checking Order</a>. The only difference: it tests for {@code text/plain}
+	 * thoroughly, both by scanning more of the file and by supporting many
+	 * character sets.
 	 * </p>
 	 *
 	 * <p>
 	 * getBytes() is a {@link java.util.concurrent.Callable} because it may or
-	 * may not be needed. A file named <tt>README</tt> will always be detected
-	 * as <tt>text/plain</tt>, for instance; a file named <tt>foo.doc</tt>
-	 * will need a magic-number check because it may be plain text or it may be
-	 * a Word document.
+	 * may not be needed. A file named {@code README} will always be detected
+	 * as {@code text/plain}, for instance; a file named {@code foo.doc} will
+	 * need a magic-number check because it may be plain text or it may be a
+	 * Word document.
 	 * </p>
 	 *
 	 * <p>
@@ -125,7 +125,7 @@ public class MimeTypeDetector {
      *
 	 * @param filename Filename. To skip filename globbing, pass {@literal ""}
 	 * @param getBytesAsync Supplier that eventually returns a {@code byte[]}
-	 * @return Eventual MIME type String, falling back to <tt>"application/octet-stream</tt>"
+	 * @return Eventual MIME type String, falling back to {@code "application/octet-stream"}
 	 */
 	public CompletionStage<String> detectMimeTypeAsync(String filename, Supplier<CompletionStage<byte[]>> getBytesAsync) {
 		Set<WeightedMimeType> weightedMimeTypes = filenameToWmts(filename);
@@ -164,17 +164,17 @@ public class MimeTypeDetector {
 	 * <p>
 	 * This method follows the Shared Mime Info database's
 	 * <a href="http://standards.freedesktop.org/shared-mime-info-spec/shared-mime-info-spec-latest.html#idm140625828606432">Recommended
-	 * Checking Order</a>. The only difference: it tests for
-	 * <tt>text/plain</tt> thoroughly, both by scanning more of the file and
-	 * by supporting many character sets.
+	 * Checking Order</a>. The only difference: it tests for {@code text/plain}
+	 * thoroughly, both by scanning more of the file and by supporting many
+	 * character sets.
 	 * </p>
 	 *
 	 * <p>
 	 * getBytes() is a {@link java.util.concurrent.Callable} because it may or
-	 * may not be needed. A file named <tt>README</tt> will always be detected
-	 * as <tt>text/plain</tt>, for instance; a file named <tt>foo.doc</tt>
-	 * will need a magic-number check because it may be plain text or it may be
-	 * a Word document.
+	 * may not be needed. A file named {@code README} will always be detected
+	 * as {@code text/plain}, for instance; a file named {@code foo.doc} will
+	 * need a magic-number check because it may be plain text or it may be a
+	 * Word document.
 	 * </p>
 	 *
 	 * <p>
@@ -415,7 +415,7 @@ public class MimeTypeDetector {
      * Returns true if subarrays are equal, with the given mask.
      *
      * <p>
-     * The mask must have length <tt>len</tt>.
+     * The mask must have length {@ code len}.
      * </p>
      */
     private boolean subArraysEqualWithMask(byte[] a, int aStart, byte[] b, int bStart, byte[] mask, int maskStart, int len) {

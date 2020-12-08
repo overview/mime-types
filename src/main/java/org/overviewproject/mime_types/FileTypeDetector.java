@@ -9,7 +9,7 @@ import java.nio.file.Path;
 public class FileTypeDetector extends java.nio.file.spi.FileTypeDetector {
 
     private final MimeTypeDetector mimeTypeDetector = new MimeTypeDetector();
-    
+
     @Override
     public String probeContentType(Path path) throws IOException {
         try {

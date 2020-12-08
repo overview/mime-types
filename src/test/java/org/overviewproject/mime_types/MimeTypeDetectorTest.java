@@ -160,4 +160,15 @@ public class MimeTypeDetectorTest extends TestCase {
             assertEquals(GetBytesException.class, ex.getCause().getClass());
         }
     }
+
+    public void testPathAsync() throws ExecutionException, IOException, InterruptedException, GetBytesException {
+        File f = File.createTempFile("mime-type-test", ".weird");
+        f.deleteOnExit();
+
+        try (FileWriter fw = new FileWriter(f)) {
+            fw.append("foo bar baz");
+        }
+        String actual = detector.detectMimeTypeAsync(f.toPath()).toCompletableFuture().get();
+        assertEquals("text/plain", actual);
+    }
 }

@@ -290,15 +290,16 @@ public class MimeTypeDetector {
                 return futureBytes;
             }
 
-            final ByteBuffer buf = ByteBuffer.allocate(getMaxGetBytesLength());
+            final byte[] wrappedBytes = new byte[getMaxGetBytesLength()];
+            final ByteBuffer buf = ByteBuffer.wrap(wrappedBytes);
             channel.read(buf, 0, futureBytes, new CompletionHandler<Integer, CompletableFuture<byte[]>>() {
                 @Override public void completed(Integer nBytes, CompletableFuture<byte[]> f) {
-                    if (nBytes == -1) nBytes = 0; // handle empty file
-
-                    byte[] bytes = new byte[nBytes];
-                    buf.rewind();
-                    buf.get(bytes, 0, nBytes);
-                    f.complete(bytes);
+                    if (nBytes == wrappedBytes.length) {
+                        f.complete(wrappedBytes);
+                    } else {
+                        if (nBytes == -1) nBytes = 0; // handle empty file
+                        f.complete(Arrays.copyOf(wrappedBytes, nBytes));
+                    }
                 }
 
                 @Override public void failed(Throwable exc, CompletableFuture<byte[]> f) {

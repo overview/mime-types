@@ -1,3 +1,9 @@
+v1.0.2 - 2021-01-13
+-------------------
+
+* Handle empty or null filename.
+  [#11](https://github.com/overview/mime-types/issues/11)
+
 v1.0.1 - 2020-12-08
 -------------------
 

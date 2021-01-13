@@ -116,6 +116,16 @@ public class MimeTypeDetectorTest extends TestCase {
         assertEquals("text/plain", detector.detectMimeType(f));
     }
 
+    public void testEmptyFilename() throws IOException, GetBytesException {
+        InputStream is = getClass().getResourceAsStream("/test/d.png");
+        assertEquals("image/png", detector.detectMimeType("", is));
+    }
+
+    public void testNullFilename() throws IOException, GetBytesException {
+        InputStream is = getClass().getResourceAsStream("/test/d.png");
+        assertEquals("image/png", detector.detectMimeType(null, is));
+    }
+
     public void testPath() throws IOException, GetBytesException {
         File f = File.createTempFile("mime-type-test", ".weird");
         f.deleteOnExit();

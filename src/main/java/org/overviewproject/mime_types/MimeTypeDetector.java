@@ -12,6 +12,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -124,7 +125,7 @@ public class MimeTypeDetector {
      * working.
      * </p>
      *
-     * @param filename Filename. To skip filename globbing, pass {@code ""}
+     * @param filename Filename. To skip filename globbing, pass {@code null}
      * @param getBytesAsync Supplier that eventually returns a {@code byte[]}
      * @return Eventual MIME type String, falling back to {@code "application/octet-stream"}
      */
@@ -185,7 +186,7 @@ public class MimeTypeDetector {
      * bytes.
      * </p>
      *
-     * @param filename Filename. To skip filename globbing, pass {@code ""}
+     * @param filename Filename. To skip filename globbing, pass {@code null}
      * @param getBytes Callable that returns a {@code byte[]}
      * @return a MIME type such as {@code "text/plain"}
      * @throws GetBytesException if {@code getBytes.call()} throws an Exception
@@ -210,7 +211,7 @@ public class MimeTypeDetector {
      * {@code true}. When in doubt, pass a {@link java.io.BufferedInputStream}.
      * </p>
      *
-     * @param filename Name of file. To skip filename globbing, pass {@code ""}
+     * @param filename Name of file. To skip filename globbing, pass {@code null}
      * @param is InputStream that supports mark and reset.
      * @return a MIME type such as {@code "text/plain"}
      * @throws GetBytesException if marking, reading or resetting the InputStream fails.
@@ -561,10 +562,13 @@ public class MimeTypeDetector {
     }
 
     private Set<WeightedMimeType> filenameToWmts(String filename) {
-        Set<WeightedMimeType> ret;
-        WeightedMimeType wmt;
+        if (filename == null) {
+            return Collections.<WeightedMimeType>emptySet();
+        }
 
-        if ((wmt = filenameToWmtOrNullByLiteral(filename)) != null) {
+        Set<WeightedMimeType> ret;
+        WeightedMimeType wmt = filenameToWmtOrNullByLiteral(filename);
+        if (wmt != null) {
             ret = new HashSet<WeightedMimeType>();
             ret.add(wmt);
             return ret;
@@ -593,9 +597,15 @@ public class MimeTypeDetector {
     private void lookupGlobNodeSuffix(String fileName, int numEntries,
             int offset, boolean ignoreCase, int len, Set<WeightedMimeType> mimeTypes,
             StringBuilder pattern) {
-        char c = ignoreCase ? fileName.toLowerCase().charAt(len - 1) : fileName.charAt(len - 1);
+        if (fileName == null || fileName.length() == 0) {
+            return;
+        }
 
-        if (c == '\0') return;
+        if (ignoreCase) {
+            fileName = fileName.toLowerCase();
+        }
+
+        char c = fileName.charAt(len - 1);
 
         int min = 0;
         int max = numEntries - 1;

@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 import org.mozilla.universalchardet.UniversalDetector;
 
 /**
- * Determines the MIME type of a file.
+ * Determines the MIME type of file.
  *
  * <p>
  * The Opendesktop shared mime database contains glob rules and magic number
@@ -35,20 +35,20 @@ import org.mozilla.universalchardet.UniversalDetector;
  *
  * <p>
  * For a complete description of the information contained in this file please
- * see: http://standards.freedesktop.org/shared-mime-info-spec/shared-mime-info-spec-latest.html
+ * see: <a href="http://standards.freedesktop.org/shared-mime-info-spec/shared-mime-info-spec-latest.html">...</a>
  * </p>
  *
  * @author Steven McArdle
  * @author Adam Hooper &lt;adam@adamhooper.com&gt;
  */
 public class MimeTypeDetector {
-    private static String MimeCache = "/mime.cache";
+    private static final String MIME_CACHE = "/mime.cache";
 
     /** MimeCache file content, as a ByteBuffer. */
-    private ByteBuffer content;
+    private final ByteBuffer content;
 
     /** MimeCache file content, as an array of bytes. */
-    private byte[] contentBytes;
+    private final byte[] contentBytes;
 
     /**
      * Creates a new MimeTypeDetector.
@@ -59,7 +59,8 @@ public class MimeTypeDetector {
      * </p>
      */
     public MimeTypeDetector() {
-        try (InputStream is = getClass().getResourceAsStream(MimeCache)) {
+        try (InputStream is = getClass().getResourceAsStream(MIME_CACHE)) {
+            assert is != null;
             contentBytes = inputStreamToByteArray(is);
             content = ByteBuffer.wrap(contentBytes);
         } catch (IOException e) {
@@ -202,7 +203,7 @@ public class MimeTypeDetector {
     }
 
     /**
-     * Determines the MIME type of a file with a given input stream.
+     * Determines the MIME type of file with a given input stream.
      *
      * <p>
      * The InputStream must exist. It must point to the beginning of the file
@@ -217,17 +218,13 @@ public class MimeTypeDetector {
      * @see #detectMimeType(String, Callable)
      */
     public String detectMimeType(String filename, final InputStream is) throws GetBytesException {
-        Callable<byte[]> getBytes = new Callable<byte[]>() {
-            public byte[] call() throws IOException {
-                return inputStreamToFirstBytes(is);
-            }
-        };
+        Callable<byte[]> getBytes = () -> inputStreamToFirstBytes(is);
 
         return detectMimeType(filename, getBytes);
     }
 
     /**
-     * Determines the MIME type of a file.
+     * Determines the MIME type of file.
      *
      * <p>
      * The file must exist and be readable.
@@ -243,7 +240,7 @@ public class MimeTypeDetector {
     }
 
     /**
-     * Determines the MIME type of a file.
+     * Determines the MIME type of file.
      *
      * <p>
      * The file must exist and be readable.
@@ -259,7 +256,7 @@ public class MimeTypeDetector {
     }
 
     /**
-     * Determines the MIME type of a file.
+     * Determines the MIME type of file.
      *
      * <p>
      * The file must exist and be readable.
@@ -280,7 +277,7 @@ public class MimeTypeDetector {
         String filename = path.getFileName().toString();
 
         Supplier<CompletionStage<byte[]>> supplier = () -> {
-            final CompletableFuture<byte[]> futureBytes = new CompletableFuture<byte[]>();
+            final CompletableFuture<byte[]> futureBytes = new CompletableFuture<>();
 
             AsynchronousFileChannel channel;
             try {
@@ -321,7 +318,6 @@ public class MimeTypeDetector {
 
     private boolean isAsciiText(byte[] bytes) {
         for (byte b : bytes) {
-            if (b > 0x7f) return false;
             if (b < 0x20 && !Character.isWhitespace(b)) return false;
         }
         return true;
@@ -358,7 +354,7 @@ public class MimeTypeDetector {
     }
 
     private Iterable<String> bytesToMimeTypes(byte[] data) {
-        Set<String> mimeTypes = new LinkedHashSet<String>();
+        Set<String> mimeTypes = new LinkedHashSet<>();
 
         int listOffset = getMagicListOffset();
         int numEntries = content.getInt(listOffset);
@@ -416,7 +412,7 @@ public class MimeTypeDetector {
      * Returns true if subarrays are equal, with the given mask.
      *
      * <p>
-     * The mask must have length {@ code len}.
+     * The mask must have length {@code len}.
      * </p>
      */
     private boolean subArraysEqualWithMask(byte[] a, int aStart, byte[] b, int bStart, byte[] mask, int maskStart, int len) {
@@ -507,7 +503,7 @@ public class MimeTypeDetector {
     }
 
     private Set<WeightedMimeType> filenameToWmtsByGlob(String filename) {
-        Set<WeightedMimeType> ret = new HashSet<WeightedMimeType>();
+        Set<WeightedMimeType> ret = new HashSet<>();
 
         int listOffset = getGlobListOffset();
         int numEntries = content.getInt(listOffset);
@@ -540,19 +536,19 @@ public class MimeTypeDetector {
         }
 
         // bestWeightWmts: filtered for just top weight
-        Collection<WeightedMimeType> bestWeightWmts = new ArrayList<WeightedMimeType>();
+        Collection<WeightedMimeType> bestWeightWmts = new ArrayList<>();
         for (WeightedMimeType wmt : weightedMimeTypes) {
             if (wmt.weight == bestWeight) bestWeightWmts.add(wmt);
         }
 
-        // Find longest pattern length
+        // Find the longest pattern length
         int bestPatternLength = 0;
         for (WeightedMimeType wmt : bestWeightWmts) {
             if (wmt.pattern.length() > bestPatternLength) bestPatternLength = wmt.pattern.length();
         }
 
         // ret: filtered for just top pattern
-        Set<String> ret = new HashSet<String>();
+        Set<String> ret = new HashSet<>();
         for (WeightedMimeType wmt : bestWeightWmts) {
             if (wmt.pattern.length() == bestPatternLength) ret.add(wmt.mimeType);
         }
@@ -565,7 +561,7 @@ public class MimeTypeDetector {
         WeightedMimeType wmt;
 
         if ((wmt = filenameToWmtOrNullByLiteral(filename)) != null) {
-            ret = new HashSet<WeightedMimeType>();
+            ret = new HashSet<>();
             ret.add(wmt);
             return ret;
         }
@@ -582,7 +578,7 @@ public class MimeTypeDetector {
         int offset = content.getInt(listOffset + 4);
         int len = filename.length();
 
-        Set<WeightedMimeType> wmts = new HashSet<WeightedMimeType>();
+        Set<WeightedMimeType> wmts = new HashSet<>();
 
         lookupGlobNodeSuffix(filename, numEntries, offset, ignoreCase, len, wmts, new StringBuilder());
 
@@ -623,9 +619,9 @@ public class MimeTypeDetector {
                         int mimeOffset = content.getInt(childOffset + (12 * i) + 4);
                         int weight = content.getInt(childOffset + (12 * i) + 8);
                         mimeTypes.add(new WeightedMimeType(
-                                getMimeType(mimeOffset),
-                                pattern.toString(),
-                                weight
+                                    getMimeType(mimeOffset),
+                                    pattern.toString(),
+                                    weight
                         ));
                     }
                 }
@@ -634,7 +630,7 @@ public class MimeTypeDetector {
         }
     }
 
-    private class WeightedMimeType {
+    private static class WeightedMimeType {
         String mimeType;
         String pattern;
         int weight;

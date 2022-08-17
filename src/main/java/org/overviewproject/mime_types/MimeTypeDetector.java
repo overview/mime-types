@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 import org.mozilla.universalchardet.UniversalDetector;
 
 /**
- * Determines the MIME type of file.
+ * Determines the MIME type of files.
  *
  * <p>
  * The Opendesktop shared mime database contains glob rules and magic number
@@ -35,7 +35,7 @@ import org.mozilla.universalchardet.UniversalDetector;
  *
  * <p>
  * For a complete description of the information contained in this file please
- * see: <a href="http://standards.freedesktop.org/shared-mime-info-spec/shared-mime-info-spec-latest.html">...</a>
+ * see <a href="http://standards.freedesktop.org/shared-mime-info-spec/shared-mime-info-spec-latest.html">shared-mime-info-spec</a>
  * </p>
  *
  * @author Steven McArdle

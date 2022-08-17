@@ -22,10 +22,12 @@ public class MimeTypeDetectorTest extends TestCase {
     }
 
     public void testGlobExtension() {
+        // These files don't exist; if the test throws NullPointerException
+        // that's because we need to read the file. We shouldn't need to read
+        // these files because the extension should be enough.
         assertEquals("text/plain", detectMimeType("abc.txt"));
         assertEquals("image/x-win-bitmap", detectMimeType("x.cur"));
         assertEquals("application/vnd.ms-tnef", detectMimeType("winmail.dat"));
-        assertEquals("text/x-troff-mm", detectMimeType("abc.mm"));
         assertEquals("video/x-anim", detectMimeType("abc.anim5"));
         assertEquals("video/x-anim", detectMimeType("abc.animj"));
         assertEquals("application/x-compress", detectMimeType("README.Z"));

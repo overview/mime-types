@@ -5,3 +5,5 @@ target/
 .idea/
 *.iml
 *.versionsBackup
+d/
+shared-mime-info-*/

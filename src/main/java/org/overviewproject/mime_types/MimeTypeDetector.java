@@ -310,17 +310,9 @@ public class MimeTypeDetector {
     }
 
     private boolean isText(byte[] bytes) {
-        // UniversalDetector seems unable to detect ASCII. Weird, huh?
         // 0 bytes is application/octet-stream, like Tika
         // https://issues.apache.org/jira/browse/TIKA-483
-        return bytes.length > 0 && isAsciiText(bytes) || isEncodedText(bytes);
-    }
-
-    private boolean isAsciiText(byte[] bytes) {
-        for (byte b : bytes) {
-            if (b < 0x20 && !Character.isWhitespace(b)) return false;
-        }
-        return true;
+        return bytes.length > 0 && isEncodedText(bytes);
     }
 
     private boolean isEncodedText(byte[] bytes) {

@@ -1,20 +1,20 @@
 package org.overviewproject.mime_types;
 
+import junit.framework.TestCase;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
-import junit.framework.TestCase;
-
 public class MimeTypeDetectorTest extends TestCase {
-    private MimeTypeDetector detector = new MimeTypeDetector();
+    private final MimeTypeDetector detector = new MimeTypeDetector();
 
     public void testGlobLiteral() {
         assertEquals("text/x-makefile", detectMimeType("makefile"));
@@ -89,9 +89,7 @@ public class MimeTypeDetectorTest extends TestCase {
     private String detectMimeType(String resourceName) {
         try (InputStream is = getClass().getResourceAsStream("/test/" + resourceName)) {
             return detector.detectMimeType(resourceName, is);
-        } catch (GetBytesException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
+        } catch (GetBytesException | IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -99,10 +97,6 @@ public class MimeTypeDetectorTest extends TestCase {
     public void testEmptyFile() throws IOException, GetBytesException {
         File f = File.createTempFile("mime-type-test", ".weird");
         f.deleteOnExit();
-
-        try (FileWriter fw = new FileWriter(f)) {
-            // empty file
-        }
         assertEquals("application/octet-stream", detector.detectMimeType(f));
     }
 
@@ -127,28 +121,22 @@ public class MimeTypeDetectorTest extends TestCase {
     }
 
     public void testCallback() throws GetBytesException {
-        Callable<byte[]> getBytes = new Callable<byte[]>() {
-            public byte[] call() throws UnsupportedEncodingException {
-                return "foo bar baz".getBytes("utf-8");
-            }
-        };
+        Callable<byte[]> getBytes = () -> "foo bar baz".getBytes(StandardCharsets.UTF_8);
 
         assertEquals("text/plain", detector.detectMimeType("mime-type-test.weird", getBytes));
     }
 
-    public void testAsync() throws IOException, InterruptedException, ExecutionException {
-        byte[] bytes = "foo bar baz".getBytes("utf-8");
+    public void testAsync() throws InterruptedException, ExecutionException {
+        byte[] bytes = "foo bar baz".getBytes(StandardCharsets.UTF_8);
 
-        Supplier<CompletionStage<byte[]>> getBytes = () -> {
-            return CompletableFuture.completedFuture(bytes);
-        };
+        Supplier<CompletionStage<byte[]>> getBytes = () -> CompletableFuture.completedFuture(bytes);
 
         assertEquals("text/plain", detector.detectMimeTypeAsync("mime-type-test.weird", getBytes).toCompletableFuture().get());
     }
 
-    public void testAsyncGetBytesException() throws IOException, InterruptedException, ExecutionException {
+    public void testAsyncGetBytesException() throws InterruptedException {
         Supplier<CompletionStage<byte[]>> getBytes = () -> {
-            CompletableFuture<byte[]> future = new CompletableFuture<byte[]>();
+            CompletableFuture<byte[]> future = new CompletableFuture<>();
             future.completeExceptionally(new GetBytesException(new IOException("oops")));
             return future;
         };
@@ -161,7 +149,7 @@ public class MimeTypeDetectorTest extends TestCase {
         }
     }
 
-    public void testPathAsync() throws ExecutionException, IOException, InterruptedException, GetBytesException {
+    public void testPathAsync() throws ExecutionException, IOException, InterruptedException {
         File f = File.createTempFile("mime-type-test", ".weird");
         f.deleteOnExit();
 

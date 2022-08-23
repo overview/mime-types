@@ -13,7 +13,6 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
-
 public class MimeTypeDetectorTest extends TestCase {
     private final MimeTypeDetector detector = new MimeTypeDetector();
 
@@ -79,8 +78,7 @@ public class MimeTypeDetectorTest extends TestCase {
     }
 
     public void testRespectsMagicFileOrdering() {
-        // MIME candidates are found in this order for this file: "application/ogg", "audio/ogg", "video/ogg" (note, the superclass comes
-        // first)
+        // MIME candidates are found in this order for this file: "application/ogg", "audio/ogg", "video/ogg" (note, the superclass comes first)
         // however, if a HashSet is used internally, the iterable order will be something like: "audio/ogg", "application/ogg", "video/ogg"
         // and "audio/ogg" is returned for video as well as audio (not good)
         assertEquals("application/ogg", detectMimeType("ogv-video-header"));

@@ -549,6 +549,10 @@ public class MimeTypeDetector {
     }
 
     private Set<WeightedMimeType> filenameToWmts(String filename) {
+        if("".equals(filename) || null == filename){
+            return new HashSet<>();
+        }
+
         Set<WeightedMimeType> ret;
         WeightedMimeType wmt;
 

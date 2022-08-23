@@ -1,6 +1,7 @@
 package org.overviewproject.mime_types;
 
 import junit.framework.TestCase;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -13,8 +14,19 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 public class MimeTypeDetectorTest extends TestCase {
     private final MimeTypeDetector detector = new MimeTypeDetector();
+
+    @Test
+    public void testEmptyStringNullSafe() throws GetBytesException {
+        InputStream is = getTestResource("empty");
+
+        String mimeType = detector.detectMimeType("", is);
+
+        assertEquals("application/octet-stream", mimeType);
+    }
 
     public void testGlobLiteral() {
         assertEquals("text/x-makefile", detectMimeType("makefile"));
@@ -72,7 +84,8 @@ public class MimeTypeDetectorTest extends TestCase {
     }
 
     public void testRespectsMagicFileOrdering() {
-        // MIME candidates are found in this order for this file: "application/ogg", "audio/ogg", "video/ogg" (note, the superclass comes first)
+        // MIME candidates are found in this order for this file: "application/ogg", "audio/ogg", "video/ogg" (note, the superclass comes
+        // first)
         // however, if a HashSet is used internally, the iterable order will be something like: "audio/ogg", "application/ogg", "video/ogg"
         // and "audio/ogg" is returned for video as well as audio (not good)
         assertEquals("application/ogg", detectMimeType("ogv-video-header"));
@@ -89,11 +102,15 @@ public class MimeTypeDetectorTest extends TestCase {
     }
 
     private String detectMimeType(String resourceName) {
-        try (InputStream is = getClass().getResourceAsStream("/test/" + resourceName)) {
+        try (InputStream is = getTestResource(resourceName)) {
             return detector.detectMimeType(resourceName, is);
         } catch (GetBytesException | IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private InputStream getTestResource(String resourceName) {
+        return getClass().getResourceAsStream("/test/" + resourceName);
     }
 
     public void testEmptyFile() throws IOException, GetBytesException {

@@ -1,7 +1,6 @@
 package org.overviewproject.mime_types;
 
 import junit.framework.TestCase;
-import org.junit.Test;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -14,18 +13,14 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class MimeTypeDetectorTest extends TestCase {
     private final MimeTypeDetector detector = new MimeTypeDetector();
 
-    @Test
     public void testEmptyStringNullSafe() throws GetBytesException {
         InputStream is = getTestResource("empty");
 
-        String mimeType = detector.detectMimeType("", is);
-
-        assertEquals("application/octet-stream", mimeType);
+        assertEquals("application/octet-stream", detector.detectMimeType("", is));
     }
 
     public void testGlobLiteral() {

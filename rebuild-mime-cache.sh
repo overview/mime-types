@@ -2,7 +2,7 @@
 
 set -ex
 
-VERSION="2.2"
+VERSION="2.3"
 
 [ -f shared-mime-info-$VERSION.tar.xz ] || curl -o - --location https://gitlab.freedesktop.org/xdg/shared-mime-info/-/archive/$VERSION/shared-mime-info-$VERSION.tar.gz | tar zxf -
 (cd ./shared-mime-info-$VERSION && meson build && cd build && ninja src/update-mime-database data/freedesktop.org.xml)

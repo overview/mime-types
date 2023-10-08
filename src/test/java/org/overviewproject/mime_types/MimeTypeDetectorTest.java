@@ -45,6 +45,7 @@ class MimeTypeDetectorTest {
         assertEquals("video/x-anim", detectMimeType("abc.animj"));
         assertEquals("application/x-compress", detectMimeType("README.Z"));
         assertEquals("application/vnd.ms-outlook", detectMimeType("t.pst"));
+        assertEquals("text/javascript", detectMimeType("not-application-javascript.js"));
     }
 
     @Test
@@ -64,7 +65,7 @@ class MimeTypeDetectorTest {
 
     @Test
     void multipleExtensions() {
-        assertEquals("application/x-java-archive", detectMimeType("e.1.3.jar"));
+        assertEquals("application/java-archive", detectMimeType("e.1.3.jar"));
     }
 
     @Test
